@@ -7,7 +7,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -22,7 +24,7 @@ type APIClient struct {
 	Key      string
 	Secret   string
 	ClientId string
-	Nonce string
+	Nonce    string
 }
 
 //  : Constructor for coinmate api client
@@ -61,14 +63,23 @@ func (api *APIClient) Execute(method string, path Endpoint, body interface{}, re
 }
 
 func (api *APIClient) createSignature() string {
-	api.Nonce := string(time.Now().Format("20060102150405"))
+	api.Nonce = string(time.Now().Format("20060102150405"))
 	message := api.Nonce + api.ClientId + api.Key
 	key := []byte(api.Secret)
 	h := hmac.New(sha256.New, key)
 	h.Write([]byte(message))
-	signature hex.EncodeToString(h.Sum(nil))
+	signature := hex.EncodeToString(h.Sum(nil))
+	return signature
 
 	// return base64.StdEncoding.EncodeToString(h.Sum(nil))
+}
+
+func (api *APIClient) convertString(str string) int64 {
+	conv, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		log.Fatal("Cannot convert str to int")
+	}
+	return conv
 }
 
 //  signature = "{}{}{}".format(nonce, self.clientId, self.publicApiKey)
