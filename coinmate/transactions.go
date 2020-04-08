@@ -1,10 +1,46 @@
 package coinmate
 
+/*const (*/
+//TransactionHistory = "/transactionHistory"
+/*)*/
+
+type APITransactionHistory struct {
+	Error        bool                          `json:"error"`
+	ErrorMessage interface{}                   `json:"errorMessage"`
+	Data         []APITransactionHistoryResult `json:"data"`
+}
+
+type APITransactionHistoryResult struct {
+	Timestamp       int64    `json:"timestamp"`
+	TransactionID   int64    `json:"transactionId"`
+	TransactionType string   `json:"transactionType"`
+	Price           *float64 `json:"price"`
+	PriceCurrency   string   `json:"priceCurrency"`
+	Amount          float64  `json:"amount"`
+	AmountCurrency  string   `json:"amountCurrency"`
+	Fee             float64  `json:"fee"`
+	FeeCurrency     string   `json:"feeCurrency"`
+	Description     *string  `json:"description"`
+	Status          Status   `json:"status"`
+	OrderID         *int64   `json:"orderId"`
+}
+
+/*type Currency string*/
+
+//const (
+//Btc Currency = "BTC"
+//Czk Currency = "CZK"
+//Eur Currency = "EUR"
+/*)*/
+
+type Status string
+
 const (
-	TransactionHistory = "/transactionHistory"
+	Ok      Status = "OK"
+	Pending Status = "PENDING"
 )
 
-type APITransactionBody struct {
+type APITransactionHistoryBody struct {
 	offset int    `json:"offset`
 	limit  int    `json:"limit`
 	sort   string `json:"sort"`
@@ -15,9 +51,9 @@ type APITransactionBody struct {
 	signature string `json:"signature"`
 }
 
-func (api *APIClient) GetTransactionHistory() []byte {
+func (api *APIClient) GetTransactionHistory() (th APITransactionHistory, err error) {
 
-	body := APITransactionBody{
+	body := APITransactionHistoryBody{
 		offset:    0,
 		limit:     10,
 		sort:      "ASC",
@@ -26,6 +62,11 @@ func (api *APIClient) GetTransactionHistory() []byte {
 		nonce:     api.convertString(api.Nonce),
 		signature: api.createSignature(),
 	}
+
+	if err := api.Execute("POST", api.Endpoints.transactionHistory(), body, &th); err != nil {
+		return th, err
+	}
+	return th, nil
 
 	// body := []byte(offset=0&limit=10&sort=ASC&timestampFrom=1401390154803&clientId=&publicKey=CpmRVUJL0OGByT2otAfCKeeDdU6yfi6OzvnXcAwaHvE&nonce=0&signature=E4F27EAB0A836873CEE325A2526CC7476E2A3F2BE8026CADFB7A66B72D582DE8)
 

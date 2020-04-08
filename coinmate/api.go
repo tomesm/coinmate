@@ -6,6 +6,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -13,31 +15,44 @@ import (
 	"time"
 )
 
-type Endpoint string
+//type Endpoint string
 
-const (
-	// Endpoints
-	BaseURL = "https://coinmate.io/api"
-)
+//const (
+// Endpoints
+//BaseURL = "https://coinmate.io/api"
+//)
 
 type APIClient struct {
-	Key      string
-	Secret   string
-	ClientId string
-	Nonce    string
+	Key       string
+	Secret    string
+	ClientId  string
+	Nonce     string
+	Endpoints Endpoints
+}
+
+type malformedRequest struct {
+	status int
+	msg    string
+}
+
+func (mr *malformedRequest) Error() string {
+	return mr.msg
 }
 
 //  : Constructor for coinmate api client
 func NewAPIClient(apiKey, apiSecret, clientId string) *APIClient {
 	return &APIClient{
-		Key:      apiKey,
-		Secret:   apiSecret,
-		ClientId: clientId,
+		Key:       apiKey,
+		Secret:    apiSecret,
+		ClientId:  clientId,
+		Nonce:     string(time.Now().Format("20060102150405")),
+		Endpoints: Endpoints{},
 	}
 }
 
-func (api *APIClient) Execute(method string, path Endpoint, body interface{}, result interface{}) error {
+func (api *APIClient) Execute(method string, path string, body interface{}, result interface{}) error {
 	client := &http.Client{}
+
 	var bodyBuffer io.Reader
 	if body != nil {
 		data, err := json.Marshal(body)
@@ -46,24 +61,41 @@ func (api *APIClient) Execute(method string, path Endpoint, body interface{}, re
 		}
 		bodyBuffer = bytes.NewBuffer([]byte(data))
 	}
-	request, err := http.NewRequest(method, BaseURL+string(path), bodyBuffer)
+
+	request, err := http.NewRequest(method, api.Endpoints.baseURL()+path, bodyBuffer)
 	if err != nil {
+		fmt.Println("ERROR creating request")
 		return err
 	}
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
 	response, err := client.Do(request)
 	if err != nil {
+		fmt.Println("error in response")
 		return err
 	}
-	if err := json.NewDecoder(response.Body).Decode(result); err != nil {
-		return err
+
+	err = decodeJSONBody(response, body)
+	if err != nil {
+		var mr *malformedRequest
+		if errors.As(err, &mr) {
+			http.Error(mr.msg, mr.status)
+		} else {
+			log.Println(err.Error())
+			http.Error(http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		}
 	}
+
+	/*if err := json.NewDecoder(response.Body).Decode(result); err != nil {*/
+	//fmt.Println("Error decode response body")
+	//return err
+	/*}*/
 	return nil
 }
 
 func (api *APIClient) createSignature() string {
-	api.Nonce = string(time.Now().Format("20060102150405"))
+	//api.Nonce = string(time.Now().Format("20060102150405"))
 	message := api.Nonce + api.ClientId + api.Key
 	key := []byte(api.Secret)
 	h := hmac.New(sha256.New, key)

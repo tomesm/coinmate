@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"log"
+	"os"
+
 	"github.com/tomesm/go-coinmate/coinmate"
 )
 
 func main() {
-	c := coinmate.NewAPIClient(os.Getenv("COINMATE_KEY"), 
-						   os.Getenv("COINMATE_SECRET"),
-						   os.Getenv("COINMATE_CLIENT_ID"))
+	c := coinmate.NewAPIClient(os.Getenv("COINMATE_KEY"),
+		os.Getenv("COINMATE_SECRET"),
+		os.Getenv("COINMATE_CLIENT_ID"))
 
 	tradingPairs, err := c.GetTradingPairs()
 	if err != nil {
@@ -18,5 +19,9 @@ func main() {
 	}
 	fmt.Println(tradingPairs.Data[0].FirstCurrency)
 
-	
+	transactionHistory, err := c.GetTransactionHistory()
+	if err != nil {
+		log.Fatal("Transaction history not fetched")
+	}
+	fmt.Println(transactionHistory.Data[0].Description)
 }

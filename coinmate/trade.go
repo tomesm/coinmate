@@ -9,17 +9,17 @@ const (
 	Eur SecondCurrency = "EUR"
 )
 
-const (
-	TradingPairs Endpoint = "/tradingPairs"
-)
+//const (
+//TradingPairs Endpoint = "/tradingPairs"
+//)
 
 type APITradingPairs struct {
-	Error        bool                  `json:"error"`
-	ErrorMessage interface{}           `json:"errorMessage"`
-	Data         []APITradingPairsData `json:"data"`
+	Error        bool                    `json:"error"`
+	ErrorMessage interface{}             `json:"errorMessage"`
+	Data         []APITradingPairsResult `json:"data"`
 }
 
-type APITradingPairsData struct {
+type APITradingPairsResult struct {
 	Name                              string         `json:"name"`
 	FirstCurrency                     string         `json:"firstCurrency"`
 	SecondCurrency                    SecondCurrency `json:"secondCurrency"`
@@ -32,7 +32,7 @@ type APITradingPairsData struct {
 }
 
 func (api *APIClient) GetTradingPairs() (tp APITradingPairs, err error) {
-	if err := api.Execute("GET", TradingPairs, nil, &tp); err != nil {
+	if err := api.Execute("GET", api.Endpoints.tradingPairs(), nil, &tp); err != nil {
 		return tp, err
 	}
 	return tp, nil
