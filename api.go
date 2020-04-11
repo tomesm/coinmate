@@ -14,10 +14,10 @@ import (
 )
 
 type APIClient struct {
-	Key       string
-	Secret    string
-	ClientId  string
-	Endpoints Endpoints
+	Key      string
+	Secret   string
+	ClientId string
+	Endpoint string
 }
 
 type malformedRequest struct {
@@ -29,32 +29,25 @@ func (mr *malformedRequest) Error() string {
 	return mr.msg
 }
 
-//  : Constructor for coinmate api client
 func NewAPIClient(apiKey, apiSecret, clientId string) *APIClient {
 	return &APIClient{
-		Key:       apiKey,
-		Secret:    apiSecret,
-		ClientId:  clientId,
-		Endpoints: Endpoints{},
+		Key:      apiKey,
+		Secret:   apiSecret,
+		ClientId: clientId,
+		Endpoint: "",
 	}
 }
 
 func (api *APIClient) Execute(method string, path string, body interface{}, result interface{}) error {
+	if api.Endpoint == "" {
+		api.Endpoint = Endpoints{}.baseURL()
+	}
 	client := &http.Client{}
 	data := url.Values{}
-
 	if body != nil {
 		data = createURLData(body)
-		// data.Set("offset", "0")
-		// data.Set("limit", "10")
-		// data.Set("sort", "ASC")
-		// data.Set("clientId", "33058")
-		// data.Set("nonce", nonce)
-		// data.Set("publicKey", "X_89yOm0Nj0CtGG3yScN5WPssbcKPRnEWanKaxAQgGs")
-		// data.Set("signature", signature)
 	}
-
-	request, err := http.NewRequest(method, api.Endpoints.baseURL()+path, strings.NewReader(data.Encode()))
+	request, err := http.NewRequest(method, api.Endpoint+path, strings.NewReader(data.Encode()))
 	if err != nil {
 		fmt.Println("ERROR creating request")
 		return err
@@ -72,11 +65,6 @@ func (api *APIClient) Execute(method string, path string, body interface{}, resu
 		log.Println(err.Error())
 		return nil
 	}
-
-	// err = json.NewDecoder(response.Body).Decode(result)
-	// if err != nil {
-	// 	return err
-	// }
 	return nil
 }
 

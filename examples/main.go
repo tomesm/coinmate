@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/tomesm/go-coinmate/coinmate"
+	"github.com/tomesm/go-coinmate"
 )
 
 func main() {

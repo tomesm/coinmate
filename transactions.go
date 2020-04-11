@@ -54,6 +54,14 @@ type APITransactionHistoryBody struct {
 }
 
 func (api *APIClient) GetTransactionHistory() (th APITransactionHistory, err error) {
+	body := api.getTransactionHistoryBody("0", "10", "ASC")
+	if err := api.Execute("POST", Endpoints{}.transactionHistory(), body, &th); err != nil {
+		return th, err
+	}
+	return th, nil
+}
+
+func (api *APIClient) getTransactionHistoryBody(offset, limit, sort string) APITransactionHistoryBody {
 	body := APITransactionHistoryBody{}
 	body.Offset = "0"
 	body.Limit = "10"
@@ -62,9 +70,5 @@ func (api *APIClient) GetTransactionHistory() (th APITransactionHistory, err err
 	body.PublicKey = api.Key
 	body.Nonce = api.nonce()
 	body.Signature = api.signature(body.Nonce)
-
-	if err := api.Execute("POST", api.Endpoints.transactionHistory(), body, &th); err != nil {
-		return th, err
-	}
-	return th, nil
+	return body
 }
