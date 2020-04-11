@@ -1,4 +1,4 @@
-module github.com/tomesm/go-coinmate
+module github.com/tomesm/coinmate
 
 go 1.14
 

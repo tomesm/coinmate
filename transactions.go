@@ -1,12 +1,5 @@
 package coinmate
 
-//"strconv"
-//"time"
-
-/*const (*/
-//TransactionHistory = "/transactionHistory"
-/*)*/
-
 type APITransactionHistory struct {
 	Error        bool                          `json:"error"`
 	ErrorMessage interface{}                   `json:"errorMessage"`
@@ -14,34 +7,19 @@ type APITransactionHistory struct {
 }
 
 type APITransactionHistoryResult struct {
-	Timestamp       int64   `json:"timestamp"`
-	TransactionID   int64   `json:"transactionId"`
-	TransactionType string  `json:"transactionType"`
-	Price           float64 `json:"price"`
-	PriceCurrency   string  `json:"priceCurrency"`
-	Amount          float64 `json:"amount"`
-	AmountCurrency  string  `json:"amountCurrency"`
-	Fee             float64 `json:"fee"`
-	FeeCurrency     string  `json:"feeCurrency"`
-	Description     string  `json:"description"`
-	Status          Status  `json:"status`
-	OrderID         int64   `json:"orderId"`
+	Timestamp       int64    `json:"timestamp"`
+	TransactionID   int64    `json:"transactionId"`
+	TransactionType string   `json:"transactionType"`
+	Price           *float64 `json:"price"`
+	PriceCurrency   *string  `json:"priceCurrency"`
+	Amount          float64  `json:"amount"`
+	AmountCurrency  string   `json:"amountCurrency"`
+	Fee             float64  `json:"fee"`
+	FeeCurrency     string   `json:"feeCurrency"`
+	Description     *string  `json:"description"`
+	Status          string   `json:"status`
+	OrderID         *int64   `json:"orderId"`
 }
-
-/*type Currency string*/
-
-//const (
-//Btc Currency = "BTC"
-//Czk Currency = "CZK"
-//Eur Currency = "EUR"
-/*)*/
-
-type Status string
-
-const (
-	Ok      Status = "OK"
-	Pending Status = "PENDING"
-)
 
 type APITransactionHistoryBody struct {
 	Offset    string
@@ -53,8 +31,8 @@ type APITransactionHistoryBody struct {
 	Signature string
 }
 
-func (api *APIClient) GetTransactionHistory() (th APITransactionHistory, err error) {
-	body := api.getTransactionHistoryBody("0", "10", "ASC")
+func (api *APIClient) GetTransactionHistory(offset, limit, sort string) (th APITransactionHistory, err error) {
+	body := api.getTransactionHistoryBody(offset, limit, sort)
 	if err := api.Execute("POST", Endpoints{}.transactionHistory(), body, &th); err != nil {
 		return th, err
 	}
@@ -63,9 +41,9 @@ func (api *APIClient) GetTransactionHistory() (th APITransactionHistory, err err
 
 func (api *APIClient) getTransactionHistoryBody(offset, limit, sort string) APITransactionHistoryBody {
 	body := APITransactionHistoryBody{}
-	body.Offset = "0"
-	body.Limit = "10"
-	body.Sort = "ASC"
+	body.Offset = offset
+	body.Limit = limit
+	body.Sort = sort
 	body.ClientId = api.ClientId
 	body.PublicKey = api.Key
 	body.Nonce = api.nonce()

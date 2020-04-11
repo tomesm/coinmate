@@ -1,13 +1,14 @@
 package coinmate
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -20,15 +21,6 @@ type APIClient struct {
 	Endpoint string
 }
 
-type malformedRequest struct {
-	status int
-	msg    string
-}
-
-func (mr *malformedRequest) Error() string {
-	return mr.msg
-}
-
 func NewAPIClient(apiKey, apiSecret, clientId string) *APIClient {
 	return &APIClient{
 		Key:      apiKey,
@@ -39,31 +31,31 @@ func NewAPIClient(apiKey, apiSecret, clientId string) *APIClient {
 }
 
 func (api *APIClient) Execute(method string, path string, body interface{}, result interface{}) error {
+	client := &http.Client{}
+	var data []byte
 	if api.Endpoint == "" {
 		api.Endpoint = Endpoints{}.baseURL()
 	}
-	client := &http.Client{}
-	data := url.Values{}
 	if body != nil {
-		data = createURLData(body)
+		urlValues := createURLValues(body).Encode()
+		data = []byte(urlValues)
 	}
-	request, err := http.NewRequest(method, api.Endpoint+path, strings.NewReader(data.Encode()))
+	request, err := http.NewRequest(method, api.Endpoint+path, bytes.NewBuffer(data))
 	if err != nil {
 		fmt.Println("ERROR creating request")
-		return err
+		return nil
 	}
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	request.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	response, err := client.Do(request)
 	if err != nil {
-		fmt.Println("error in response")
 		fmt.Println(response.Status)
+		log.Fatal(err)
 		return err
 	}
-	err = decodeJSONBody(response, &result)
-	if err != nil {
-		log.Println(err.Error())
-		return nil
+	defer response.Body.Close()
+	if err := json.NewDecoder(response.Body).Decode(result); err != nil {
+		log.Fatal(err)
+		return err
 	}
 	return nil
 }
@@ -79,12 +71,4 @@ func (api *APIClient) signature(nonce string) string {
 
 func (api *APIClient) nonce() string {
 	return strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-}
-
-func (api *APIClient) convertString(str string) int64 {
-	conv, err := strconv.ParseInt(str, 10, 64)
-	if err != nil {
-		log.Fatal("Cannot convert str to int")
-	}
-	return conv
 }

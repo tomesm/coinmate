@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/tomesm/go-coinmate"
+	coinmate "github.com/tomesm/coinmate"
 )
 
 func main() {
@@ -13,13 +13,13 @@ func main() {
 		os.Getenv("COINMATE_SECRET"),
 		os.Getenv("COINMATE_CLIENT_ID"))
 
-	// tradingPairs, err := c.GetTradingPairs()
-	// if err != nil {
-	// 	log.Fatal("Trading pairs not fetched")
-	// }
-	// fmt.Println(tradingPairs.Data[0].FirstCurrency)
+	tradingPairs, err := c.GetTradingPairs()
+	if err != nil {
+		log.Fatal("Trading pairs not fetched")
+	}
+	fmt.Println(tradingPairs.Data[0].FirstCurrency)
 
-	transactionHistory, err := c.GetTransactionHistory()
+	transactionHistory, err := c.GetTransactionHistory("0", "2", "ASC")
 	if err != nil {
 		log.Fatal("Transaction history not fetched")
 	}
@@ -27,6 +27,4 @@ func main() {
 	for _, th := range transactionHistory.Data {
 		fmt.Println(th.Status)
 	}
-
-	//fmt.Println(transactionHistory.Data[0].Description)
 }
