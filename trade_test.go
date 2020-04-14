@@ -15,8 +15,8 @@ func TestGetTradingPairs(t *testing.T) {
 	}
 	tests := []struct {
 		name   string
-		result APITradingPairsResult
-		want   APITradingPairsResult
+		result apiTradingPairsResult
+		want   apiTradingPairsResult
 	}{
 		{
 			name:   "BTC_EUR Trading pair",
@@ -38,8 +38,8 @@ func TestGetTradingPairs(t *testing.T) {
 	}
 }
 
-func expectedData(curr string) APITradingPairsResult {
-	return APITradingPairsResult{
+func expectedData(curr string) apiTradingPairsResult {
+	return apiTradingPairsResult{
 		Name:                              "BTC_" + curr,
 		FirstCurrency:                     "BTC",
 		SecondCurrency:                    curr,

@@ -1,12 +1,12 @@
 package coinmate
 
-type APITransactionHistory struct {
+type apiTransactionHistory struct {
 	Error        bool                          `json:"error"`
 	ErrorMessage interface{}                   `json:"errorMessage"`
-	Data         []APITransactionHistoryResult `json:"data"`
+	Data         []apiTransactionHistoryResult `json:"data"`
 }
 
-type APITransactionHistoryResult struct {
+type apiTransactionHistoryResult struct {
 	Timestamp       int64    `json:"timestamp"`
 	TransactionID   int64    `json:"transactionId"`
 	TransactionType string   `json:"transactionType"`
@@ -31,22 +31,9 @@ type APITransactionHistoryBody struct {
 	Signature string
 }
 
-func (api *APIClient) GetTransactionHistory(offset, limit, sort string) (th APITransactionHistory, err error) {
-	body := api.getTransactionHistoryBody(offset, limit, sort)
+func (api *APIClient) GetTransactionHistory(body APITransactionHistoryBody) (th apiTransactionHistory, err error) {
 	if err := api.Execute("POST", Endpoints{}.transactionHistory(), body, &th); err != nil {
 		return th, err
 	}
 	return th, nil
-}
-
-func (api *APIClient) getTransactionHistoryBody(offset, limit, sort string) APITransactionHistoryBody {
-	body := APITransactionHistoryBody{}
-	body.Offset = offset
-	body.Limit = limit
-	body.Sort = sort
-	body.ClientId = api.ClientId
-	body.PublicKey = api.Key
-	body.Nonce = api.nonce()
-	body.Signature = api.signature(body.Nonce)
-	return body
 }

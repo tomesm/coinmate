@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	coinmate "github.com/tomesm/coinmate"
+	"github.com/tomesm/coinmate"
 )
 
 func main() {
@@ -19,7 +19,16 @@ func main() {
 	}
 	fmt.Println(tradingPairs.Data[0].FirstCurrency)
 
-	transactionHistory, err := c.GetTransactionHistory("0", "2", "ASC")
+	th := coinmate.APITransactionHistoryBody{}
+	th.Offset = "0"
+	th.Limit = "2"
+	th.Sort = "ASC"
+	th.ClientId = c.ClientId
+	th.PublicKey = c.Key
+	th.Nonce = c.Nonce()
+	th.Signature = c.Signature(th.Nonce)
+
+	transactionHistory, err := c.GetTransactionHistory(th)
 	if err != nil {
 		log.Fatal("Transaction history not fetched")
 	}
@@ -27,4 +36,14 @@ func main() {
 	for _, th := range transactionHistory.Data {
 		fmt.Println(th.Status)
 	}
+
+	orderBookBody := coinmate.APIOderBookBody{}
+	orderBookBody.CurrencyPair = "BTC_EUR"
+	orderBookBody.GroupByPriceLimit = "False"
+
+	orderBook, err := c.GetOrderBook(orderBookBody)
+	if err != nil {
+		log.Fatal("Trading pairs not fetched")
+	}
+	fmt.Println(orderBook.Data.Asks[0].Price)
 }

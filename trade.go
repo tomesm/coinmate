@@ -1,12 +1,12 @@
 package coinmate
 
-type APITradingPairs struct {
+type apiTradingPairs struct {
 	Error        bool                    `json:"error"`
 	ErrorMessage interface{}             `json:"errorMessage"`
-	Data         []APITradingPairsResult `json:"data"`
+	Data         []apiTradingPairsResult `json:"data"`
 }
 
-type APITradingPairsResult struct {
+type apiTradingPairsResult struct {
 	Name                              string  `json:"name"`
 	FirstCurrency                     string  `json:"firstCurrency"`
 	SecondCurrency                    string  `json:"secondCurrency"`
@@ -18,7 +18,7 @@ type APITradingPairsResult struct {
 	TradeStatisticsWebSocketChannelID string  `json:"tradeStatisticsWebSocketChannelId"`
 }
 
-func (api *APIClient) GetTradingPairs() (tp APITradingPairs, err error) {
+func (api *APIClient) GetTradingPairs() (tp apiTradingPairs, err error) {
 	if err := api.Execute("GET", Endpoints{}.tradingPairs(), nil, &tp); err != nil {
 		return tp, err
 	}

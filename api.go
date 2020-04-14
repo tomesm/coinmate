@@ -32,26 +32,29 @@ func NewAPIClient(apiKey, apiSecret, clientId string) *APIClient {
 
 func (api *APIClient) Execute(method string, path string, body interface{}, result interface{}) error {
 	client := &http.Client{}
-	var data []byte
+	// body and query and data can be empty
+	// if body nil an empty string is assigned to the query. no need to check if body is nil
+	query := createURLValues(body).Encode()
+	data := []byte(query)
+
 	if api.Endpoint == "" {
 		api.Endpoint = Endpoints{}.baseURL()
 	}
-	if body != nil {
-		urlValues := createURLValues(body).Encode()
-		data = []byte(urlValues)
-	}
+	// it works even if data is empty for GET method
 	request, err := http.NewRequest(method, api.Endpoint+path, bytes.NewBuffer(data))
 	if err != nil {
 		fmt.Println("ERROR creating request")
 		return nil
 	}
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	request.URL.RawQuery = query
 	response, err := client.Do(request)
 	if err != nil {
 		fmt.Println(response.Status)
 		log.Fatal(err)
 		return err
 	}
+	fmt.Println(response.Status)
 	defer response.Body.Close()
 	if err := json.NewDecoder(response.Body).Decode(result); err != nil {
 		log.Fatal(err)
@@ -60,7 +63,7 @@ func (api *APIClient) Execute(method string, path string, body interface{}, resu
 	return nil
 }
 
-func (api *APIClient) signature(nonce string) string {
+func (api *APIClient) Signature(nonce string) string {
 	message := nonce + api.ClientId + api.Key
 	key := []byte(api.Secret)
 	h := hmac.New(sha256.New, key)
@@ -69,6 +72,6 @@ func (api *APIClient) signature(nonce string) string {
 	return strings.ToUpper(signature)
 }
 
-func (api *APIClient) nonce() string {
+func (api *APIClient) Nonce() string {
 	return strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 }
