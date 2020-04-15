@@ -43,7 +43,7 @@ func main() {
 
 	orderBook, err := c.GetOrderBook(orderBookBody)
 	if err != nil {
-		log.Fatal("Trading pairs not fetched")
+		log.Fatal("Order book not fetched")
 	}
 	fmt.Println(orderBook.Data.Asks[0].Price)
 }
