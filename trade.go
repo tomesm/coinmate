@@ -21,6 +21,7 @@ type apiTradingPairsResult struct {
 func (api *APIClient) GetTradingPairs() (tp apiTradingPairs, err error) {
 	if err := api.Execute("GET", Endpoints{}.tradingPairs(), nil, &tp); err != nil {
 		return tp, err
+
 	}
 	return tp, nil
 }
